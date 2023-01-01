@@ -5,13 +5,13 @@ import dotenv from "dotenv";
 
 // config
 dotenv.config({ path: ".env" });
-const DBNAME = "5b";
+const DBNAME = "rilievi_perizie";
 const CONNECTION_STRING:any = process.env.connectionString;
 
 
 let connection = new MongoClient(CONNECTION_STRING as string);
 connection.connect().then((client: any) => {
-	const COLLECTION = client.db(DBNAME).collection('Mail');
+	const COLLECTION = client.db(DBNAME).collection('Users');
 	COLLECTION.find().project({"password":1}).toArray(function(err:Error, vet: Array<{"_id" : ObjectId, "password" : String}>) {
 		if(err){
 			console.log("Errore esecuzione query" + err.message)

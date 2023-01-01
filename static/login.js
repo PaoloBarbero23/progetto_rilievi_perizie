@@ -1,62 +1,81 @@
 "use strict"
 
-$(document).ready(function() {	
-	let _username = $("#usr")
-	let _password = $("#pwd")
-	let _lblErrore = $("#lblErrore")
-	
-    _lblErrore.hide();
+$(document).ready(function () {
+	const _username = $("#txtEmail");
+	const _password = $("#txtPassword");
+	const _eyePwd = $("#eyePwd");
+	const _btnLogin = $("#btnLogin");
 
+	//tag <p> con errori
+	const _mailErr = $("#mailErr");
+	const _accesErr = $("#accesErr");
 
-	$("#btnLogin").on("click", controllaLogin)
-	
-	// il submit deve partire anche senza click 
-	// con il solo tasto INVIO
-	$(document).on('keydown', function(event) {	
-	   if (event.keyCode == 13)  
-		   controllaLogin();
-	});
-	
-	
-	function controllaLogin(){
-        _username.removeClass("is-invalid");
-		_username.prev().removeClass("icona-rossa");  				
-        _password.removeClass("is-invalid");
-		_password.prev().removeClass("icona-rossa"); 
-
-		_lblErrore.hide();		
-		
-        if (_username.val() == "") {
-            _username.addClass("is-invalid");  
-			_username.prev().addClass("icona-rossa");  
-        } 
-		else if (_password.val() == "") {
-            _password.addClass("is-invalid"); 
-			_password.prev().addClass("icona-rossa"); 
-        }		
+	_eyePwd.on("click", function () {
+		if (_eyePwd.hasClass("bi bi-eye")) {
+			_eyePwd.removeClass("bi bi-eye");
+			_eyePwd.addClass("bi bi-eye-slash");
+			_password.prop("type", "text");
+		}
 		else {
-			let request = inviaRichiesta('POST', '/api/login',  
-				{ "username": _username.val(),
-				  "password": _password.val() 
-				}
-			);
-			request.fail(function(jqXHR, test_status, str_error) {
-				if (jqXHR.status == 401) {  // unauthorized
-					_lblErrore.show();
-				} else
-					errore(jqXHR, test_status, str_error)
+			_eyePwd.removeClass("bi bi-eye-slash");
+			_eyePwd.addClass("bi bi-eye");
+			_password.prop("type", "password");
+		}
+	})
+
+	//controlla quando l'input mail perde il focus
+	_username.on("blur", function () {
+		if (_username.val() != "") {//controllo che non sia vuoto, perchè non voglio che mi dia errore se non ho ancora scritto nulla
+			let regMail = new RegExp("^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$");//regex per la mail
+			if (!regMail.test(_username.val())) {
+				_username.addClass("input-error");
+				_mailErr.text("il campo deve contenere una mail valida")
+			}
+			else {
+				_username.removeClass("input-error");
+				_mailErr.text("");
+			}
+		}
+		else {
+			_username.removeClass("input-error");
+			_mailErr.text("");
+		}
+	});
+
+	_btnLogin.on("click", function () {
+		controllaLogin();
+	});
+
+	$(document).on('keydown', function (event) {
+		if (event.keyCode == 13)
+			controllaLogin();
+	});
+
+
+	function controllaLogin() {
+		if (_username.val() == "" || _password.val() == "") {
+			_accesErr.text("inserire username e password");
+		}
+		else {
+			_accesErr.text("");
+			let request = inviaRichiesta("POST", "/api/login", { "username": _username.val(), "password": _password.val() });
+			request.fail((jqXHR, testStatus, strError) => {
+				if (jqXHR.status == 401) //401 => utente non autorizzato
+					_accesErr.text("username o password errati");
+				else
+					errore(jqXHR, testStatus, strError)
 			});
-			request.done(function(data, test_status, jqXHR) {				
-				//console.log(jqXHR.getResponseHeader('Authorization'))
-				alert("OK");		
-				window.location.href = "index.html"
-			})			
+			request.done((data) => {
+				console.log(data);
+				window.location.href = "index.html";
+			});
 		}
 	}
-	
-	
-	_lblErrore.children("button").on("click", function(){
-		_lblErrore.hide();
-	})
-	
+
+
+
+
+
+
+
 });

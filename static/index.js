@@ -2,7 +2,7 @@
 $(document).ready(function() {
 
 	let tBody = $('#tabMail tbody');
-
+	window.location.href = "login.html"
     //getMails();
 
     function getMails() {

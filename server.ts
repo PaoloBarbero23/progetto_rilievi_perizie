@@ -16,9 +16,9 @@ import jwt from "jsonwebtoken"
 
 // config
 const app = express();
-const HTTP_PORT = process.env.PORT || 1337;
+const HTTP_PORT:number = 1337;
 dotenv.config({ path: ".env" });
-const DBNAME = "5b";
+const DBNAME:string = "rilievi_perizie";
 const CONNECTION_STRING:string | undefined = process.env.connectionString;
 cloudinary.v2.config(JSON.parse(process.env.cloudinary as string))
 const corsOptions = {
@@ -27,7 +27,7 @@ const corsOptions = {
     },
     credentials: true
 }
-const privateKey = fs.readFileSync("keys/privateKey.pem", "utf8");
+//const privateKey = fs.readFileSync("keys/privateKey.pem", "utf8");
 const DURATA_TOKEN = 20 // sec
 
 
@@ -91,9 +91,10 @@ app.post('/api/login', function(req:Request, res:Response, next:NextFunction) {
 	let connection = new MongoClient(CONNECTION_STRING as string)
     connection.connect()
     .then((client:MongoClient)=>{
-        const collection = client.db(DBNAME).collection("Mail")
+        const collection = client.db(DBNAME).collection("Users")
         let regex = new RegExp(`^${req.body.username}$`, "i")
-        collection.findOne({"username" : regex})
+        let query = {"mail" : regex}
+        collection.findOne(query)
             .then((dbUser)=>{
                 if(!dbUser)
                 {
