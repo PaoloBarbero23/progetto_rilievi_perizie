@@ -1,0 +1,42 @@
+
+.titolo{
+	font-size:15pt;
+	font-weight:bold;
+	margin-top:10px;
+}
+
+		
+.icona-rossa{
+	color: #dc3545;  /* colore usato da is-invalid */
+	border:1px solid #dc3545; 
+	border-right:transparent;
+}
+
+.container{
+	margin-top: 10px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	
+}
+#frmLogin{
+	width: 300px;
+	/*graphics*/
+	border: 1px solid #ced4da;
+	border-radius: 0.25rem;
+	padding: 10px;
+	
+}
+
+.input-group {
+    position: relative;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    -ms-flex-align: stretch;
+    align-items: stretch;
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+}
