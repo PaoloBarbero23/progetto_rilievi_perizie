@@ -9,7 +9,7 @@ $(document).ready(function () {
 	const _password = $("#txtPassword");
 	const _eyePwd = $("#eyePwd");
 	const _btnLogin = $("#btnLogin");
-	
+
 	//parti del progetto
 	const div_login = $("#div_login");
 	const _wrapper = $("#wrapper");
@@ -18,12 +18,16 @@ $(document).ready(function () {
 	//sezione utente
 	const _btnAddUser = $("#btnAddUser");
 	const _modalUser = $("#modalUser");
-	const _usershow = $(".usershow");
 
 	//input per aggiunta utenti
 	const txtEmailNew = $("#txtEmailNew");
 	const txtPwdNew = $("#txtPwdNew");
-	const txtRuoloNew = $("#txtRuoloNew");
+	const txtRuoloNew = $("#txtRoleNew");
+
+	//modale aggiunta utente
+	const btnSaveUser = $("#btnSaveUser");
+	const _newUserMailErr = $("#newUserMailErr");
+	const _newUserError = $("#newUserError");
 
 	//sezioni navbar
 	const btnUtenti = $("#btnUtenti");
@@ -32,9 +36,13 @@ $(document).ready(function () {
 	const _mailErr = $("#mailErr");
 	const _accesErr = $("#accesErr");
 
-
+	//inizializzare i tooltip
+	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+		return new bootstrap.Tooltip(tooltipTriggerEl)
+	})
 	//nascondo wrapper
-	_wrapper.hide();
+	//_wrapper.hide();
 	div_login.show();
 	div_user.hide();
 
@@ -81,30 +89,60 @@ $(document).ready(function () {
 	});
 
 	_btnAddUser.on("click", function () {
-		_modalUser.modal("show");
-	
+		_modalUser.show();
+		//svuoto i campi
+		txtEmailNew.val("");
+		txtPwdNew.val("");
+		txtRuoloNew.prop("selectedIndex", 0);
+
 	});
 
 	btnUtenti.on("click", () => {
-		
-		let requestUtenti = inviaRichiesta("POST", "/api/showUtenti")
-		requestUtenti.fail(errore)
-		requestUtenti.done((data)=>{
-			div_user.show();
-			//rimuovi righe con classe usershow
-			_usershow.remove();
-			//creazione riga
-			for (const user of data) {
-				let div = $("<div>").addClass("row usershow").insertBefore(_btnAddUser.parent().parent());
-				let col = $("<div>").addClass("col-md-12").appendTo(div)
-				if(user.mail == mail_current_user)
-					col.text(user.mail+ " (tu)")
-				else
-					col.text(user.mail)
-				
-			}
+		inserisciUtenti()
+	});
 
+	txtEmailNew.on("blur", function () {
+		if (txtEmailNew.val() != "") {//controllo che non sia vuoto, perchè non voglio che mi dia errore se non ho ancora scritto nulla
+			let regMail = new RegExp("^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$");//regex per la mail
+			if (!regMail.test(txtEmailNew.val())) {
+				txtEmailNew.addClass("input-error");
+				_newUserMailErr.text("il campo deve contenere una mail valida")
+			}
+			else {
+				txtEmailNew.removeClass("input-error");
+				_newUserMailErr.text("");
+			}
+		}
+		else {
+			txtEmailNew.removeClass("input-error");
+			_newUserMailErr.text("");
+		}
+	});
+
+	btnSaveUser.on("click", function () {
+		//controllo campi che siano compilati
+		if (txtEmailNew.val() == "") {
+			_newUserMailErr.text("Inserire una mail");
+			return;
+		}
+		//se la password è vuota, il valore default è "password"
+		let param = {}
+		param.mail = txtEmailNew.val();
+		param.password = txtPwdNew.val() == "" ? "password" : txtPwdNew.val();
+		param.admin = txtRuoloNew.val() == 1 ? true : false;
+		let requestnewUser = inviaRichiesta("POST", "/api/newUser", param);
+		requestnewUser.fail((jqXHR, testStatus, strError) => {
+			if (jqXHR.status == 401) //401 => utente non autorizzato
+				_newUserMailErr.text("mail già presente");
+			else
+				errore(jqXHR, testStatus, strError)
+		});
+		requestnewUser.done((data) => {
+			alert("utente aggiunto");
+			$("#btnCloseModal").trigger("click");
+			inserisciUtenti();
 		})
+
 	});
 
 
@@ -129,7 +167,36 @@ $(document).ready(function () {
 		}
 	}
 
-	
+	function inserisciUtenti() {
+		let requestUtenti = inviaRichiesta("POST", "/api/showUtenti")
+		requestUtenti.fail(errore)
+		requestUtenti.done((data) => {
+			console.log(data)
+			div_user.show();
+			//rimuovo righe con classe usershow
+			$(".usershow").remove();
+			//creazione riga
+			for (const user of data) {
+				let html = ""
+				let div = $("<div>").addClass("row usershow").insertBefore(_btnAddUser.parent().parent());
+				let col = $("<div>").addClass("col-md-12").appendTo(div)
+				if (user.admin == true) {
+					//aggiunge il badge che indica che è un admin
+					html += "<span class='badge bg-primary amministratore'>admin"
+					html += "<i class='bi bi-shield-lock-fill'></i>"
+					html += "</span>"
+				}
+
+				if (user.mail == mail_current_user)
+					col.html(user.mail + " (tu)" + html)
+				else
+					col.html(user.mail + html)
+
+			}
+		})
+	}
+
+
 
 
 

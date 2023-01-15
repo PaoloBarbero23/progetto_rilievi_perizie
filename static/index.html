@@ -95,6 +95,7 @@
 		</div>
 	</div>
 
+
 	<!--MODAL USER-->
 	<div class="modal fade" id="modalUser" tabindex="-1" aria-labelledby="modalUserLabel" aria-hidden="true">
 		<div class="modal-dialog">
@@ -106,24 +107,32 @@
 				<div class="modal-body">
 					<form>
 						<div class="mb-3">
-							<label for="txtEmailNew" class="col-form-label">Email:</label>
+							<label for="txtEmailNew" class="col-form-label">Email<sup
+									style="font-weight: bold;">*</sup></label>
 							<input type="email" class="form-control" id="txtEmailNew">
+							<p class="error" id="newUserMailErr"></p>
 						</div>
 						<div class="mb-3">
-							<label for="txtPwdNew" class="col-form-label">Password:</label>
+							<label for="txtPwdNew" class="col-form-label">Password
+								<button type="button" data-bs-toggle="tooltip"
+									data-bs-placement="right" title="Se il campo è vuotoi, il valore di default sarà 'password'" id="tipPwd">
+									<i class="bi bi-question-circle"></i>
+								</button></label>
 							<input type="password" class="form-control" id="txtPwdNew">
+							<p class="error"></p>
 						</div>
 						<div class="mb-3">
-							<label for="txtRuolo" class="col-form-label">Ruolo:</label>
+							<label for="txtRuolo" class="col-form-label">Ruolo</label>
 							<select class="form-select" id="txtRoleNew">
-								<option value="0">Utente</option>
-								<option value="1">Amministratore</option>
+								<option value="0">Solo utente</option>
+								<option value="1">Utente e amministratore</option>
 							</select>
 						</div>
+						<p class="error" id="newUserErr"></p>
 					</form>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCloseModal">Chiudi</button>
 					<button type="button" class="btn btn-primary" id="btnSaveUser">Salva</button>
 				</div>
 			</div>
@@ -133,12 +142,12 @@
 
 
 
-	<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"
-		integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB"
-		crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"
-		integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13"
-		crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"
+			integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB"
+			crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"
+			integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13"
+			crossorigin="anonymous"></script>
 </body>
 
 </html>

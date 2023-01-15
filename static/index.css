@@ -64,7 +64,48 @@ body, html{
 	font-weight: bold;
 }
 
+#btnUtenti{
+	margin: 10px 0 10px 0;
+	cursor: pointer;
+}
 
+.usershow{
+	width: 100%;
+	height: 100%;
+	background-color: #f8f9fa;
+	display: grid;
+	place-items: center;
+	align-content: center;
+	font-weight: 700;
+}
 
+#div_user .container{
+	width: fit-content;
+	align-content: space-evenly;
+    
+}
 
+#div_user .row{
+	margin: 10px 0 10px 0;
+}
+
+.amministratore{
+	float: right;
+	font-size: 10pt;
+	font-weight: bold;
+	margin-left: 20px;
+	user-select: none;
+}
+
+#modalUser .mb-3{
+	margin-bottom: 0 !important;
+}
+
+#tipPwd{
+	border: none;
+	background-color: transparent;
+	font-size: 10pt;
+	font-weight: bold;
+	user-select: none;
+}
 

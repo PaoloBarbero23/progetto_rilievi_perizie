@@ -12,6 +12,7 @@ import fileUpload, { UploadedFile } from "express-fileupload";
 import cloudinary, { UploadApiResponse } from "cloudinary";
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
+import nodemailer from "nodemailer" // per invio mail
 
 
 // config
@@ -166,7 +167,10 @@ app.use("/api/", function (req: any, res: any, next) {
 
 app.post("/api/showUtenti", (req: any, res : Response, next:NextFunction)=>{
     let collection = req["connessione"].db(DBNAME).collection("Users")
-    collection.find().toArray()
+    collection.find()
+        .project({"mail" : 1, "admin" : 1, "username" : 1, "_id" : 0})
+        .sort({"usernmae" : 1, "admin" : -1})
+        .toArray()
     .then((data:any)=>{
         res.send(data)
     })
@@ -174,6 +178,38 @@ app.post("/api/showUtenti", (req: any, res : Response, next:NextFunction)=>{
         res.status(500);
         res.send(err.message);
     })
+})
+app.post("/api/newUser", (req: any, res : Response, next:NextFunction)=>{
+    let collection = req["connessione"].db(DBNAME).collection("Users")
+    collection.findOne({mail:req.body.mail}).then((data:any)=>{
+        if(data){
+            res.status(401);//401 = Unauthorized
+            res.send("Mail già registrata");
+        }
+        else{
+            bcrypt.hash(req.body.password, 10, (err:Error, hash:string)=>{
+                if(err){
+                    res.status(500);
+                    res.send(err.message);
+                }
+                else{
+                    req.body.password = hash;
+                    collection.insertOne(req.body).then((data:any)=>{
+                        res.send(data);
+                    })
+                    .catch((err:Error)=>{
+                        res.status(500);
+                        res.send(err.message);
+                    })
+                }
+            })
+        }
+    })
+    .catch((err:Error)=>{
+        res.status(500);
+        res.send(err.message);
+    })  
+
 })
 
 
