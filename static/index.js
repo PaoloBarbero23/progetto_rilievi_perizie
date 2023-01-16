@@ -36,15 +36,17 @@ $(document).ready(function () {
 	const _mailErr = $("#mailErr");
 	const _accesErr = $("#accesErr");
 
-	//inizializzare i tooltip
+	//inizializzare componenti bootstrap
 	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
 	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
 		return new bootstrap.Tooltip(tooltipTriggerEl)
 	})
+
+	
 	//nascondo wrapper
-	//_wrapper.hide();
+	_wrapper.hide();
 	div_login.show();
-	div_user.hide();
+	
 
 
 	_eyePwd.on("click", function () {
@@ -172,7 +174,7 @@ $(document).ready(function () {
 		requestUtenti.fail(errore)
 		requestUtenti.done((data) => {
 			console.log(data)
-			div_user.show();
+			
 			//rimuovo righe con classe usershow
 			$(".usershow").remove();
 			//creazione riga
