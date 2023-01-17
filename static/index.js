@@ -18,6 +18,7 @@ $(document).ready(function () {
 	//sezione utente
 	const _btnAddUser = $("#btnAddUser");
 	const _modalUser = $("#modalUser");
+	const _userDettagli = $("#userDettagli");
 
 	//input per aggiunta utenti
 	const txtEmailNew = $("#txtEmailNew");
@@ -28,6 +29,11 @@ $(document).ready(function () {
 	const btnSaveUser = $("#btnSaveUser");
 	const _newUserMailErr = $("#newUserMailErr");
 	const _newUserError = $("#newUserError");
+
+	//modale dettagli utente
+	const _backgroundImg = $("#backgroundImg");
+	const _txtUsernameDettagli = $("#txtUsernameDettagli");
+	const _txtRuoloDettagli = $("#txtRuoloDettagli");
 
 	//sezioni navbar
 	const btnUtenti = $("#btnUtenti");
@@ -42,11 +48,11 @@ $(document).ready(function () {
 		return new bootstrap.Tooltip(tooltipTriggerEl)
 	})
 
-	
+
 	//nascondo wrapper
-	_wrapper.hide();
+	//_wrapper.hide();
 	div_login.show();
-	
+
 
 
 	_eyePwd.on("click", function () {
@@ -174,26 +180,32 @@ $(document).ready(function () {
 		requestUtenti.fail(errore)
 		requestUtenti.done((data) => {
 			console.log(data)
-			
+
 			//rimuovo righe con classe usershow
-			$(".usershow").remove();
+			$(".usershow").parent().remove();
 			//creazione riga
 			for (const user of data) {
-				let html = ""
-				let div = $("<div>").addClass("row usershow").insertBefore(_btnAddUser.parent().parent());
-				let col = $("<div>").addClass("col-md-12").appendTo(div)
+				let text = "";
+				let div = $("<div>").addClass("row").insertBefore(_btnAddUser.parent().parent());
+				let col = $("<div>").addClass("col-md-12 usershow").appendTo(div);
+				text = user.username ? user.username : user.mail;//se username è null, allora metto la mail
+				if (user.mail == mail_current_user)
+					col.html(text + " (tu)");
+				else
+					col.html(text);
 				if (user.admin == true) {
 					//aggiunge il badge che indica che è un admin
-					html += "<span class='badge bg-primary amministratore'>admin"
-					html += "<i class='bi bi-shield-lock-fill'></i>"
-					html += "</span>"
+					let span = $("<span>").addClass("badge bg-primary amministratore").text("admin").appendTo(col);
+					$("<i>").addClass("bi bi-shield-lock-fill").appendTo(span);
+					
 				}
+				//aggiunta icona per visualizzare i dati utente
+				let btn = $("<button>").attr({"data-bs-toggle" : "modal", "data-bs-target": "#userDettagli"}).appendTo(col);
+				$("<i>").addClass("bi bi-person-circle dettagliUser").appendTo(btn).on("click", function () {
 
-				if (user.mail == mail_current_user)
-					col.html(user.mail + " (tu)" + html)
-				else
-					col.html(user.mail + html)
+				});
 
+				
 			}
 		})
 	}

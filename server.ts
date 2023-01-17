@@ -169,7 +169,7 @@ app.post("/api/showUtenti", (req: any, res : Response, next:NextFunction)=>{
     let collection = req["connessione"].db(DBNAME).collection("Users")
     collection.find()
         .project({"mail" : 1, "admin" : 1, "username" : 1, "_id" : 0})
-        .sort({"usernmae" : 1, "admin" : -1})
+        .sort({"admin" : -1})
         .toArray()
     .then((data:any)=>{
         res.send(data)
