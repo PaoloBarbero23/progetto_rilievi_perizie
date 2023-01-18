@@ -30,6 +30,22 @@ function inviaRichiesta(method, url, parameters = {}) {
     });
 }
 
+function inviaRichiestaMultipart(method, url, formData){
+    return $.ajax({
+        url: url,
+        type: method,
+        data:formData,
+		// queste tre impostazioni indicano a $.ajax
+        // di non eseguire nessun azione sui parametri
+		contentType:false,
+		processData:false,
+		cache:false,
+		
+        dataType: "json",
+        timeout : 5000,
+    });
+}
+
 
 
 function errore(jqXHR, testStatus, strError) {

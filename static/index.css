@@ -108,7 +108,6 @@ html {
 }
 
 .amministratore {
-	float: right;
 	font-size: 10pt;
 	font-weight: bold;
 	margin-left: 20px;
@@ -119,11 +118,15 @@ html {
 	margin-bottom: 0 !important;
 }
 
+.offcanvas-body {
+	padding: 1rem 0 !important;
+}
+
 #offcanvasRight .row{
 	width: 100%;
 }
 
-.tip {
+.tip, .detail{
 	border: none;
 	background-color: transparent;
 	font-size: 10pt;
@@ -140,13 +143,24 @@ html {
 	cursor: pointer;
 }
 
+.options{
+	width: fit-content;
+}
+
 /*SEZIONE DETTAGLI UTENTE*/
-#backgroundImg {
-	width: 100%;
-	height: 100%;
-	background-color: #f8f9fa;
+#backgroundImg{
 	display: grid;
 	place-items: center;
 	align-content: space-between;
 	border-radius: 50%;
+
+}
+#imgProfilo {
+	height: 100%;
+	background-color: #f8f9fa;
+}
+
+#nomeUtente{
+	font-size: 20pt;
+	font-weight: bold;
 }

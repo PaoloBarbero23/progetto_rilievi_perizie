@@ -32,8 +32,11 @@ $(document).ready(function () {
 
 	//modale dettagli utente
 	const _backgroundImg = $("#backgroundImg");
-	const _txtUsernameDettagli = $("#txtUsernameDettagli");
-	const _txtRuoloDettagli = $("#txtRuoloDettagli");
+	const _imgProfilo = $("#imgProfilo");
+	const _nomeUtente = $("#nomeUtente");
+	const _txtEmailDettagli = $("#txtEmailDettagli")
+	const _txtColorDettagli = $("#txtColorDettagli");
+	const _btnSalvaDettagli = $("#btnSalvaDettagli");
 
 	//sezioni navbar
 	const btnUtenti = $("#btnUtenti");
@@ -134,11 +137,14 @@ $(document).ready(function () {
 			return;
 		}
 		//se la password è vuota, il valore default è "password"
-		let param = {}
-		param.mail = txtEmailNew.val();
-		param.password = txtPwdNew.val() == "" ? "password" : txtPwdNew.val();
-		param.admin = txtRuoloNew.val() == 1 ? true : false;
-		let requestnewUser = inviaRichiesta("POST", "/api/newUser", param);
+		let formData = new FormData();
+		formData.append("mail", txtEmailNew.val());
+		formData.append("password", txtPwdNew.val() == "" ? "password" : txtPwdNew.val());
+		if ($("#txtImgNew").prop("files")[0] )
+			formData.append("img", $("#txtImegNew").prop("files")[0]);
+		if ($("#txtUsernameNew").val() != "")
+			formData.append("username", $("#txtUsernameNew").val());
+		let requestnewUser = inviaRichiestaMultipart("POST", "/api/newUser", formData);
 		requestnewUser.fail((jqXHR, testStatus, strError) => {
 			if (jqXHR.status == 401) //401 => utente non autorizzato
 				_newUserMailErr.text("mail già presente");
@@ -146,9 +152,9 @@ $(document).ready(function () {
 				errore(jqXHR, testStatus, strError)
 		});
 		requestnewUser.done((data) => {
-			alert("utente aggiunto");
-			$("#btnCloseModal").trigger("click");
+			console.log(data);
 			inserisciUtenti();
+			$("#btnCloseModal").trigger("click");
 		})
 
 	});
@@ -185,30 +191,105 @@ $(document).ready(function () {
 			$(".usershow").parent().remove();
 			//creazione riga
 			for (const user of data) {
+				let btn;
 				let text = "";
 				let div = $("<div>").addClass("row").insertBefore(_btnAddUser.parent().parent());
 				let col = $("<div>").addClass("col-md-12 usershow").appendTo(div);
+				let divOptions = $("<div>").addClass("col-md-7 text-truncate").appendTo(col);
 				text = user.username ? user.username : user.mail;//se username è null, allora metto la mail
 				if (user.mail == mail_current_user)
-					col.html(text + " (tu)");
+					divOptions.html(text + " (tu)");
 				else
-					col.html(text);
+					divOptions.html(text);
+
+				divOptions = $("<div>").addClass("col-md-5 options").appendTo(col).prop("utente", user)
 				if (user.admin == true) {
 					//aggiunge il badge che indica che è un admin
-					let span = $("<span>").addClass("badge bg-primary amministratore").text("admin").appendTo(col);
+					let span = $("<span>").addClass("badge bg-primary amministratore").text("admin").appendTo(divOptions);
 					$("<i>").addClass("bi bi-shield-lock-fill").appendTo(span);
+					//mettere line barrata al nome dell'utente
 					
 				}
+				else {
+					if (user.deleted)//aggiungo badge rosso deleted
+					{
+						let span = $("<span>").addClass("badge bg-danger deleted").text("deleted").appendTo(divOptions);
+						$("<i>").addClass("bi bi-x-circle-fill").appendTo(span);
+						divOptions.parent().children("div").eq(0).css("text-decoration", "line-through");
+					}
+					else {
+						btn = $("<button>").prop("utente", user).addClass("delete bi bi-person-x-fill detail").appendTo(divOptions).on("click", function () {
+							let utente = $(this).parent().prop("utente");
+							//swal.fire con checkbox per confermare eliminazione
+							swal.fire({
+								title: 'Sei sicuro di voler eliminare l\'utente?',
+								text: "Non potrai annullare l'operazione!",
+								icon: 'warning',
+								input: 'checkbox',
+								inputPlaceholder: 'Rimuovi anche le perizie dell\'utente',
+								showCancelButton: true,
+								confirmButtonColor: '#3085d6',
+								cancelButtonColor: '#d33',
+								confirmButtonText: 'Conferma',
+								cancelButtonText: 'Annulla'
+							}).then((result) => {
+								if (result.isConfirmed) {
+
+									//see the value of the checkbox
+									let checkbox = result.value;
+
+									let requestDelete = inviaRichiesta("POST", "/api/deleteUser", { "mail": utente.mail, "delete": checkbox });
+									requestDelete.fail(errore);
+									requestDelete.done((data) => {
+										inserisciUtenti();
+									});
+								}
+							});
+
+						});
+					}
+					//aggiunta icona per eliminare l'utente
+
+
+				}
 				//aggiunta icona per visualizzare i dati utente
-				let btn = $("<button>").attr({"data-bs-toggle" : "modal", "data-bs-target": "#userDettagli"}).appendTo(col);
-				$("<i>").addClass("bi bi-person-circle dettagliUser").appendTo(btn).on("click", function () {
-
+				btn = $("<button>").attr({ "data-bs-toggle": "modal", "data-bs-target": "#userDettagli" }).addClass("detail").appendTo(divOptions);
+				$("<i>").addClass("bi bi-person-circle dettagliUser").appendTo(btn)
+				btn.on("click", function () {
+					let utente = $(this).parent().prop("utente");
+					if (utente.image)
+						_imgProfilo.prop("src", utente.image);
+					else
+						_imgProfilo.prop("src", "img/user.jpg");
+					if (utente.username)
+						_nomeUtente.text(utente.username);
+					else
+						_nomeUtente.html("<i>Nessun username</i>");
+					_txtEmailDettagli.val(utente.mail);
+					if (utente.color)
+						_txtColorDettagli.val(utente.color);
+					else
+						_txtColorDettagli.val("#FF0000");
 				});
-
-				
 			}
 		})
 	}
+
+	_btnSalvaDettagli.on("click", function () {
+		let param = {};
+		param.mail = _txtEmailDettagli.val();
+		param.color = _txtColorDettagli.val();
+		let request = inviaRichiesta("POST", "/api/updateUser", param);
+		request.fail(errore);
+		request.done((data) => {
+			console.log(data);
+			$("#btnChiudiDettagli").trigger("click");
+			inserisciUtenti();
+		})
+
+	});
+
+	//
 
 
 
