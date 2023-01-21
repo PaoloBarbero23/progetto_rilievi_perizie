@@ -23,40 +23,7 @@
 </head>
 
 <body>
-	<div id="div_login">
 
-		<!--TITLE-->
-		<div class="container">
-			<div class="row titolo">
-				<div class="col-md-12">
-					<h1 class="text-center">Rilievi perizie</h1>
-				</div>
-			</div>
-
-
-
-			<!-- LOGIN -->
-			<form class="login">
-
-				<h1 class="h3 mb-3 fw-normal">Accedi</h1>
-
-				<div class="form-floating">
-					<input type="email" class="form-control" id="txtEmail" placeholder="name@example.com">
-					<label for="floatingInput">Indirizzo email</label>
-					<p class="error" id="mailErr"></p>
-				</div>
-				<div class="form-floating">
-					<input type="password" class="form-control" id="txtPassword" placeholder="Password">
-					<label for="floatingPassword">Password</label>
-					<i class="bi bi-eye" id="eyePwd"></i>
-				</div>
-				<p class="error" id="accesErr"></p>
-
-				<button class="w-100 btn btn-lg btn-primary" type="button" id="btnLogin">Accedi</button>
-
-			</form>
-		</div>
-	</div>
 	<div id="wrapper">
 		<!--NAVBAR-->
 		<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -81,38 +48,97 @@
 				</div>
 			</div>
 		</nav>
-
 		<div id="divPerizie">
 			<div id="divMappa">
-				<label for="txtFiltro" class="col-form-label">Filtra</label>
-				<input type="search" class="form-control" id="txtFiltro"/>
+				<div id="div_filtro">
+					<label for="dataListUtenti" class="form-label">Filtra utenti</label>
+					<input class="form-control" list="datalistOptions" id="dataListUtenti"
+						placeholder="ricerca per utente (sia username che email)">
+					<datalist id="datalistOptions">
+					</datalist>
+				</div>
+
 				<div id="map">
 
 				</div>
+				<div id="panel">
+
+				</div>
+			</div>
+			<div id="div_info">
+				<i class="bi bi-x" id="btnClose"></i>
+				<div class="row">
+					<div class="col-md-5" id="info_user_perizie">
+						<div class="card">
+							<div class="card-header">
+								<h5 class="card-title">Informazioni</h5>
+								
+										<i class="bi bi-star tip" data-bs-toggle="tooltip" data-bs-placement="right"
+										title="Segna come importante" id="btnImportant"></i>
+									
+							</div>
+							<div class="card-body">
+								<div class="row" id="infoUser">
+									<h5>Informazioni su chi ha fatto la perizia</h5>
+									
+
+									<div class="col-md-4">
+										<img alt="user" id="user_perizia" class="immagini">
+									</div>
+									<div class="col-md-8" id="txtInfoUser">
+									</div>
+								</div>
+								<hr>
+								<div class="row">
+									<div class="col-md-12" id="txtInfoPerizia">
+										<h5>Informazioni sulla perizia:</h5>
+									</div>
+								</div>
+
+							</div>
+						</div>
+					</div>
+					<div class="col-md-7" id="info_perizia">
+						<div id="img">
+
+
+							<button class="carousel-control-prev" type="button" data-bs-slide="prev">
+								<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+								<span class="visually-hidden">Previous</span>
+							</button>
+							<button class="carousel-control-next" type="button" data-bs-slide="next">
+								<span class="carousel-control-next-icon" aria-hidden="true"></span>
+								<span class="visually-hidden">Next</span>
+							</button>
+
+						</div>
+					</div>
+				</div>
+
 			</div>
 		</div>
+	</div>
 
-		<!--DIV USER-->
-		<div class="offcanvas offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
-			id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
-			<div class="offcanvas-header">
-				<h5 id="offcanvasRightLabel">Lista utenti</h5>
-				<button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
-					aria-label="Close"></button>
-			</div>
-			<div class="offcanvas-body" id="div_user">
-				<div class="container">
-					<div class="row endrow">
-						<div class="col-md-12">
-							<button type="button" class="btn btn-primary " data-bs-toggle="modal"
-								data-bs-target="#modalUser" id="btnAddUser">
-								<i class="bi bi-person-plus"></i> Aggiungi utente
-							</button>
-						</div>
+	<!--DIV USER-->
+	<div class="offcanvas offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
+		id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+		<div class="offcanvas-header">
+			<h5 id="offcanvasRightLabel">Lista utenti</h5>
+			<button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+		</div>
+		<div class="offcanvas-body" id="div_user">
+			<div class="container">
+				<div class="row endrow">
+					<div class="col-md-12">
+						<button type="button" class="btn btn-primary " data-bs-toggle="modal"
+							data-bs-target="#modalUser" id="btnAddUser">
+							<i class="bi bi-person-plus"></i> Aggiungi utente
+						</button>
 					</div>
 				</div>
 			</div>
 		</div>
+	</div>
 	</div>
 	</div>
 
@@ -191,7 +217,7 @@
 				<div class="modal-body">
 					<form>
 						<div class="mb-3" id="backgroundImg">
-							<img src="" alt="img/no_photo.jpg" id="imgProfilo">
+							<img src="" alt="img/no_photo.jpg" id="imgProfilo" class="immagini">
 							<p id="nomeUtente"></p>
 						</div>
 						<div class="mb-3">

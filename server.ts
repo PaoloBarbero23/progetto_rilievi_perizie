@@ -173,22 +173,11 @@ app.use("/api/", function (req: any, res: any, next) {
 
 
 /* ********************* (Sezione 3) USER ROUTES  ************************** */
-app.post ("/api/getPerizie", (req: any, res: Response, next: NextFunction) => {
-    let collection = req["connessione"].db(DBNAME).collection("Users");
-    //si prendono solo gli utenti che hanno il campo perizie
-    collection.find({"perizie": {$exists : true}}).project({"perizie" : 1, "color" : 1, "username" :1, "mail":1, "_id" : 0}).toArray()
-        .then((data: any) => {
-            res.send(data);
-        })
-        .catch((err: Error) => {
-            res.status(500);
-            res.send(err.message);
-        })
-})
+
 app.post("/api/showUtenti", (req: any, res: Response, next: NextFunction) => {
     let collection = req["connessione"].db(DBNAME).collection("Users")
     collection.find()
-        .project({ "mail": 1, "admin": 1, "username": 1, "color": 1, "deleted": 1,  "img" : 1, "_id": 0 })
+        .project({ "mail": 1, "admin": 1, "username": 1, "color": 1, "deleted": 1, "img": 1, "perizie": 1, "_id": 0 })
         //si ordina mettendo in basso solo chi ha deleted = true
         .sort({ "admin": -1, "deleted": 1 })
         .toArray()
@@ -237,42 +226,37 @@ app.post("/api/newUser", (req: any, res: Response, next: NextFunction) => {
         let file = req.files.img;
         let filename = file.name;
         let path = "./static/img/" + filename;
-        cloudinary.v2.uploader.upload(path, { "folder": "progetto_rilievi_perizie", "use_filename": true })
-            .then((result: cloudinary.UploadApiResponse) => {
-                bcrypt.hash(req.body.password, 10, (err: Error, hash: string) => {
-                    if (err) {
+        cloudinary.v2.uploader.upload(path, { "folder": "progetto_rilievi_perizie", "use_filename": true }).then((result: cloudinary.UploadApiResponse) => {
+            bcrypt.hash(req.body.password, 10, (err: Error, hash: string) => {
+                if (err) {
+                    res.status(500);
+                    res.send(err.message);
+                }
+                else {
+                    req.body.password = hash;
+                    let record: object = { "username": req.body.username, "img": result.secure_url, "mail": req.body.mail, "password": req.body.password, "admin": false, "color": "#FF0000" }
+                    collection.insertOne(record).then((data: any) => {
+                        res.send(data);
+                    }).catch((err: Error) => {
                         res.status(500);
                         res.send(err.message);
-                    }
-                    else {
-                        req.body.password = hash;
-                        let record: object = { "username": req.body.username, "img": result.secure_url, "mail": req.body.mail, "password": req.body.password }
-                        collection.insertOne(record).then((data: any) => {
-                            res.send(data);
-                        })
-                            .catch((err: Error) => {
-                                res.status(500);
-                                res.send(err.message);
-                            })
-                    }
-                })
+                    })
+                }
+            })
 
 
-            });
+        });
     }
-
-
 })
 
 app.post("/api/updateUser", (req: any, res: Response, next: NextFunction) => {
     let collection = req["connessione"].db(DBNAME).collection("Users")
     collection.updateOne({ mail: req.body.mail }, { $set: { "color": req.body.color } }).then((data: any) => {
         res.send(JSON.stringify({ result: "ok" }));
+    }).catch((err: Error) => {
+        res.status(500);
+        res.send(err.message);
     })
-        .catch((err: Error) => {
-            res.status(500);
-            res.send(err.message);
-        })
 });
 
 app.post("/api/deleteUser", (req: any, res: Response, next: NextFunction) => {
@@ -280,22 +264,30 @@ app.post("/api/deleteUser", (req: any, res: Response, next: NextFunction) => {
     if (req.body.delete == 1) {//cancello l'utente
         collection.deleteOne({ mail: req.body.mail }).then((data: any) => {
             res.send(JSON.stringify({ result: "1" }));
-        })
-            .catch((err: Error) => {
-                res.status(500);
-                res.send(err.message);
-            });
+        }).catch((err: Error) => {
+            res.status(500);
+            res.send(err.message);
+        });
     }
     else { //inserisco un campo di nome deleted a true e metto il marker a rosso
         collection.updateOne({ mail: req.body.mail }, { $set: { deleted: true, "color": "#FF0000" } }).then((data: any) => {
             res.send(JSON.stringify({ result: "0" }));
-        })
-            .catch((err: Error) => {
-                res.status(500);
-                res.send(err.message);
-            });
+        }).catch((err: Error) => {
+            res.status(500);
+            res.send(err.message);
+        });
     }
 
+})
+
+app.post("/api/important", (req: any, res: Response, next: NextFunction) => {
+    let collection = req["connessione"].db(DBNAME).collection("Users")
+    collection.updateOne({ $and: [{ mail: req.body.mail }, { "perizie": { $elemMatch: { "id_perizia": req.body.id_perizia } } }] }, { $set: { "perizie.$.important": req.body.value } }).then((data: any) => {
+        res.send(JSON.stringify({ result: "ok" }));
+    }).catch((err: Error) => {
+        res.status(500);
+        res.send(err.message);
+    })
 })
 
 
