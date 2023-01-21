@@ -17,6 +17,7 @@
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
 
 	<link rel="stylesheet" href="index.css">
+	<script type="text/javascript" src="environment.js"></script>
 	<script type="text/javascript" src="libreria.js"></script>
 	<script src="index.js"></script>
 </head>
@@ -75,13 +76,21 @@
 									Utenti
 								</a>
 							</button>
-
-
 						</li>
 					</ul>
 				</div>
 			</div>
 		</nav>
+
+		<div id="divPerizie">
+			<div id="divMappa">
+				<label for="txtFiltro" class="col-form-label">Filtra</label>
+				<input type="search" class="form-control" id="txtFiltro"/>
+				<div id="map">
+
+				</div>
+			</div>
+		</div>
 
 		<!--DIV USER-->
 		<div class="offcanvas offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"

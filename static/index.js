@@ -2,8 +2,14 @@
 
 //stringa con mail dell'utente corrente
 let mail_current_user = "";
+const map_icon = "M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z"
 
-$(document).ready(function () {
+const markerColor = "FF3333";
+
+//funzione che viene eseguita quando la pagina carica
+window.onload = async function () {
+
+	await caricaGoogleMaps();
 	//sezione del login
 	const _username = $("#txtEmail");
 	const _password = $("#txtPassword");
@@ -38,6 +44,10 @@ $(document).ready(function () {
 	const _txtColorDettagli = $("#txtColorDettagli");
 	const _btnSalvaDettagli = $("#btnSalvaDettagli");
 
+	//div mappa
+	const _divMappa = $("#divMappa");
+	const _map = $("#map").get(0);
+
 	//sezioni navbar
 	const btnUtenti = $("#btnUtenti");
 
@@ -55,6 +65,110 @@ $(document).ready(function () {
 	//nascondo wrapper
 	//_wrapper.hide();
 	div_login.show();
+
+
+	//mostro la mappa di Google Maps
+
+	let geocoder = new google.maps.Geocoder();
+	geocoder.geocode({
+		"address": "Fossano Via San Michele 68"
+	}, (result, status) => {
+		console.log(result);
+		if (status == google.maps.GeocoderStatus.OK) {
+
+			let mapOptions = {
+				"center": result[0].geometry.location,
+				"zoom": 12,
+				"mapTypeId": google.maps.MapTypeId.ROADMAP
+			};
+			let mapID = new google.maps.Map(_map, mapOptions);
+			let position = new google.maps.LatLng(result[0].geometry.location)
+			//change the marker color
+			console.log(google.maps.SymbolPath)
+			const svgMarker = {
+				path: map_icon,
+				fillColor: "#FF0000",
+				fillOpacity: 1,
+				strokeWeight: 2,
+				strokeColor: "#00000",
+				rotation: 0,
+				scale: 1.8,
+				anchor: new google.maps.Point(0, 20),
+			};
+			var marker = new google.maps.Marker({
+				icon: svgMarker,
+				map: mapID,
+				position: position
+			});
+
+
+
+			let infoWindowOption = {
+				"content": "Sede principale",
+				"width": 150
+			}
+			let infoWindow = new google.maps.InfoWindow(infoWindowOption);
+			marker.addListener("click", function () {
+				//console.log(marcatori);
+				//console.log(ristoranti.length % ristorante.id);
+				infoWindow.open(mapID, marker);
+			})
+
+
+			let requestMarker = inviaRichiesta("POST", "/api/getPerizie");
+			requestMarker.fail(errore);
+			requestMarker.done((data) => {
+				console.log(data);
+				for (const item of data) {
+					let perizie = item.perizie;
+					for (const perizia of perizie) {
+						console.log(perizia);
+						let position = new google.maps.LatLng(perizia.coord.lat, perizia.coord.lon)
+						const svgMarker = {
+							path: map_icon,
+							fillColor: item.color,
+							fillOpacity: 1,
+							strokeWeight: 2,
+							strokeColor: "#000000",
+							rotation: 0,
+							scale: 1.8,
+							anchor: new google.maps.Point(0, 20),
+						};
+						var marker = new google.maps.Marker({
+							icon: svgMarker,
+							map: mapID,
+							position: position
+						});
+
+
+						let infoWindowOption = {
+							"content": `<b class='title'>${perizia.nome}</b>
+										<hr>
+										<div>
+										<p class='content'>${perizia.descrizione}</p>
+										<p class='content'><b>Perizia effettuata il:</b> ${perizia.data}</p>
+										<p class='content'><b>Perizia fatta da:</b> ${!item.username ? item.mail : item.username}</p>
+										</div>
+										`,
+							"width": 150
+						}
+						let infoWindow = new google.maps.InfoWindow(infoWindowOption);
+						marker.addListener("click", function () {
+							//console.log(marcatori);
+							//console.log(ristoranti.length % ristorante.id);
+							infoWindow.open(mapID, marker);
+						})
+					}
+				}
+			});
+		}
+	})
+
+
+
+
+
+
 
 
 
@@ -140,8 +254,8 @@ $(document).ready(function () {
 		let formData = new FormData();
 		formData.append("mail", txtEmailNew.val());
 		formData.append("password", txtPwdNew.val() == "" ? "password" : txtPwdNew.val());
-		if ($("#txtImgNew").prop("files")[0] )
-			formData.append("img", $("#txtImegNew").prop("files")[0]);
+		if ($("#txtImgNew").prop("files")[0])
+			formData.append("img", $("#txtImgNew").prop("files")[0]);
 		if ($("#txtUsernameNew").val() != "")
 			formData.append("username", $("#txtUsernameNew").val());
 		let requestnewUser = inviaRichiestaMultipart("POST", "/api/newUser", formData);
@@ -203,74 +317,30 @@ $(document).ready(function () {
 					divOptions.html(text);
 
 				divOptions = $("<div>").addClass("col-md-5 options").appendTo(col).prop("utente", user)
-				if (user.admin == true) {
-					//aggiunge il badge che indica che è un admin
+				if (user.admin == true) {//aggiunge il badge che indica che è un admin
 					let span = $("<span>").addClass("badge bg-primary amministratore").text("admin").appendTo(divOptions);
 					$("<i>").addClass("bi bi-shield-lock-fill").appendTo(span);
-					//mettere line barrata al nome dell'utente
-					
 				}
 				else {
-					if (user.deleted)//aggiungo badge rosso deleted
+					if (user.deleted)//aggiungo badge deleted, barro l'utente e aggiungo pulsante per togliere le perizie
 					{
-						let span = $("<span>").addClass("badge bg-danger deleted").text("deleted").appendTo(divOptions);
+						let span = $("<span>").addClass("badge bg-danger amministratore").text("deleted").appendTo(divOptions);
 						$("<i>").addClass("bi bi-x-circle-fill").appendTo(span);
+						btn = $("<button>").prop("utente", user).addClass("detail").appendTo(divOptions).on("click", lastDelete)
+						$("<i>").addClass("bi bi-x-square-fill dettagliUser").appendTo(btn);
 						divOptions.parent().children("div").eq(0).css("text-decoration", "line-through");
 					}
 					else {
-						btn = $("<button>").prop("utente", user).addClass("delete bi bi-person-x-fill detail").appendTo(divOptions).on("click", function () {
-							let utente = $(this).parent().prop("utente");
-							//swal.fire con checkbox per confermare eliminazione
-							swal.fire({
-								title: 'Sei sicuro di voler eliminare l\'utente?',
-								text: "Non potrai annullare l'operazione!",
-								icon: 'warning',
-								input: 'checkbox',
-								inputPlaceholder: 'Rimuovi anche le perizie dell\'utente',
-								showCancelButton: true,
-								confirmButtonColor: '#3085d6',
-								cancelButtonColor: '#d33',
-								confirmButtonText: 'Conferma',
-								cancelButtonText: 'Annulla'
-							}).then((result) => {
-								if (result.isConfirmed) {
-
-									//see the value of the checkbox
-									let checkbox = result.value;
-
-									let requestDelete = inviaRichiesta("POST", "/api/deleteUser", { "mail": utente.mail, "delete": checkbox });
-									requestDelete.fail(errore);
-									requestDelete.done((data) => {
-										inserisciUtenti();
-									});
-								}
-							});
-
-						});
+						btn = $("<button>").prop("utente", user).addClass("detail").appendTo(divOptions).on("click", deleteUser);
+						$("<i>").addClass("bi bi-person-x-fill").appendTo(btn);
 					}
-					//aggiunta icona per eliminare l'utente
-
-
 				}
-				//aggiunta icona per visualizzare i dati utente
-				btn = $("<button>").attr({ "data-bs-toggle": "modal", "data-bs-target": "#userDettagli" }).addClass("detail").appendTo(divOptions);
-				$("<i>").addClass("bi bi-person-circle dettagliUser").appendTo(btn)
-				btn.on("click", function () {
-					let utente = $(this).parent().prop("utente");
-					if (utente.image)
-						_imgProfilo.prop("src", utente.image);
-					else
-						_imgProfilo.prop("src", "img/user.jpg");
-					if (utente.username)
-						_nomeUtente.text(utente.username);
-					else
-						_nomeUtente.html("<i>Nessun username</i>");
-					_txtEmailDettagli.val(utente.mail);
-					if (utente.color)
-						_txtColorDettagli.val(utente.color);
-					else
-						_txtColorDettagli.val("#FF0000");
-				});
+				if (!user.deleted) {
+					//aggiunta icona per visualizzare i dati utente
+					btn = $("<button>").attr({ "data-bs-toggle": "modal", "data-bs-target": "#userDettagli" }).addClass("detail").appendTo(divOptions);
+					$("<i>").addClass("bi bi-person-circle dettagliUser").appendTo(btn)
+					btn.on("click", visualizzaDettagli);
+				}
 			}
 		})
 	}
@@ -289,7 +359,101 @@ $(document).ready(function () {
 
 	});
 
-	//
+	function lastDelete() {
+		let utente = $(this).parent().prop("utente");
+		//swal.fire con checkbox per confermare eliminazione
+		swal.fire({
+			title: 'Vuoi eliminare tutte le perizie dell\'utente?',
+			text: "L'utente verrà cancellato definitivamente",
+			icon: 'warning',
+			showCancelButton: true,
+			confirmButtonColor: '#3085d6',
+			cancelButtonColor: '#d33',
+			confirmButtonText: 'Conferma',
+			cancelButtonText: 'Annulla'
+		}).then((result) => {
+			if (result.isConfirmed) {
+				let requestDelete = inviaRichiesta("POST", "/api/deleteUser", { "mail": utente.mail, "delete": 1 });
+				requestDelete.fail(errore);
+				requestDelete.done((data) => {
+					swal.fire({
+						title: 'Operazione eseguita con successo',
+						icon: 'L\'utente è stato eliminato definitivamente',
+						confirmButtonText: 'Ok'
+					});
+					inserisciUtenti();
+				});
+			}
+		});
+	}
+
+	function visualizzaDettagli() {
+
+		let utente = $(this).parent().prop("utente");
+		if (utente.img)
+			_imgProfilo.prop("src", utente.img);
+		else
+			_imgProfilo.prop("src", "img/user.jpg");
+		if (utente.username)
+			_nomeUtente.text(utente.username);
+		else
+			_nomeUtente.html("<i>Nessun username</i>");
+		_txtEmailDettagli.val(utente.mail);
+		if (utente.color)
+			_txtColorDettagli.val(utente.color);
+		else
+			_txtColorDettagli.val("#FF0000");
+
+	}
+
+	function deleteUser() {
+		let utente = $(this).parent().prop("utente");
+		//swal.fire con checkbox per confermare eliminazione
+		swal.fire({
+			title: 'Sei sicuro di voler eliminare l\'utente?',
+			text: "Non potrai annullare l'operazione!",
+			icon: 'warning',
+			input: 'checkbox',
+			inputPlaceholder: 'Rimuovi anche le perizie dell\'utente',
+			showCancelButton: true,
+			confirmButtonColor: '#3085d6',
+			cancelButtonColor: '#d33',
+			confirmButtonText: 'Conferma',
+			cancelButtonText: 'Annulla'
+		}).then((result) => {
+			if (result.isConfirmed) {
+
+				//see the value of the checkbox
+				let checkbox = result.value;
+
+				let requestDelete = inviaRichiesta("POST", "/api/deleteUser", { "mail": utente.mail, "delete": checkbox });
+				requestDelete.fail(errore);
+				requestDelete.done((data) => {
+					//sweetallert con messaggio di conferma
+					swal.fire({
+						title: 'Operazione eseguita con successo',
+						icon: 'success',
+						confirmButtonText: 'Ok'
+					});
+					inserisciUtenti();
+				});
+			}
+		});
+
+	}
+
+	function caricaGoogleMaps() {
+		const URL = "https://maps.googleapis.com/maps/api"
+		let promise = new Promise(function (resolve, reject) {
+			let script = document.createElement('script');
+			script.type = 'text/javascript';
+			script.src = URL + '/js?&key=' + MAP_KEY + '&v=3&libraries=marker';
+			document.body.appendChild(script);
+			script.onload = resolve;
+			script.onerror = reject;
+		})
+		return promise;
+	}
 
 
 
@@ -297,6 +461,4 @@ $(document).ready(function () {
 
 
 
-
-
-});
+}
