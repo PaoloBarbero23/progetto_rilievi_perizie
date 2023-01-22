@@ -51,19 +51,28 @@
 		<div id="divPerizie">
 			<div id="divMappa">
 				<div id="div_filtro">
-					<label for="dataListUtenti" class="form-label">Filtra utenti</label>
-					<input class="form-control" list="datalistOptions" id="dataListUtenti"
-						placeholder="ricerca per utente (sia username che email)">
-					<datalist id="datalistOptions">
-					</datalist>
+					<div class="col-md-5">
+						<label for="listUtenti" class="form-label">Filtra utenti</label>
+					<input class="form-control" id="listUtenti" placeholder="ricerca per mail">
+					</div>
+					<div class="col-md-5">
+						<label for="listPerizie" class="form-label">Filtra le perizie</label>
+						<select class="form-select" id="listPerizie">
+							<option value="0">Tutte</option>
+							<option value="1">Solo importanti</option>
+						</select>
+					</div>
+				</div>
+				<div id="divMap">
+
+					<div id="map">
+
+					</div>
+					<div id="panel">
+						<i class="bi bi-x" id="btnCloseDir"></i>
+					</div>
 				</div>
 
-				<div id="map">
-
-				</div>
-				<div id="panel">
-
-				</div>
 			</div>
 			<div id="div_info">
 				<i class="bi bi-x" id="btnClose"></i>
@@ -72,15 +81,15 @@
 						<div class="card">
 							<div class="card-header">
 								<h5 class="card-title">Informazioni</h5>
-								
-										<i class="bi bi-star tip" data-bs-toggle="tooltip" data-bs-placement="right"
-										title="Segna come importante" id="btnImportant"></i>
-									
+
+								<i class="bi bi-star tip" data-bs-toggle="tooltip" data-bs-placement="right"
+									title="Segna come importante" id="btnImportant"></i>
+
 							</div>
 							<div class="card-body">
 								<div class="row" id="infoUser">
 									<h5>Informazioni su chi ha fatto la perizia</h5>
-									
+
 
 									<div class="col-md-4">
 										<img alt="user" id="user_perizia" class="immagini">
@@ -99,20 +108,32 @@
 						</div>
 					</div>
 					<div class="col-md-7" id="info_perizia">
-						<div id="img">
+						<div class="row">
 
-
-							<button class="carousel-control-prev" type="button" data-bs-slide="prev">
-								<span class="carousel-control-prev-icon" aria-hidden="true"></span>
-								<span class="visually-hidden">Previous</span>
-							</button>
-							<button class="carousel-control-next" type="button" data-bs-slide="next">
-								<span class="carousel-control-next-icon" aria-hidden="true"></span>
-								<span class="visually-hidden">Next</span>
-							</button>
-
+							<div id="img">
+	
+	
+								<button class="carousel-control-prev" type="button" data-bs-slide="prev">
+									<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+									<span class="visually-hidden">Previous</span>
+								</button>
+								<button class="carousel-control-next" type="button" data-bs-slide="next">
+									<span class="carousel-control-next-icon" aria-hidden="true"></span>
+									<span class="visually-hidden">Next</span>
+								</button>
+	
+							</div >
+							<div id="desc_img">
+								<span></span>
+							</div>
 						</div>
 					</div>
+				</div>
+				<div class="row" id="div_azioni">
+					<button class="btn btn-primary btnAction" id="btnInfoAnnulla">Annulla</button>
+					<button class="btn btn-primary btnAction" id="btnInfoSalva" >Salva</button>
+					<button class="btn btn-primary btnAction" id="btnInfoModifica" >Modifica</button>
+
 				</div>
 
 			</div>

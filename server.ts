@@ -290,6 +290,68 @@ app.post("/api/important", (req: any, res: Response, next: NextFunction) => {
     })
 })
 
+app.post("/api/filter", (req: any, res: Response, next: NextFunction) => {
+    let mail = req.body.mail;
+    let value = req.body.value;
+    let query = {};
+    let project;
+    if (value == 1 && mail != "") {
+        query = { $and: [{ mail: mail }, { "perizie": { $elemMatch: { "important": true } } }] }
+    }
+    else if (mail == "" && value == 1) {
+        query = { "perizie": { $elemMatch: { "important": true } } }
+    }
+    else if (mail != "" && value == 0) {
+        query = { mail: mail }
+    }
+    if(value == 1)
+        project = { "perizie.$": 1, "mail": 1, "username": 1, "img": 1, "color": 1, "_id" : 0 }
+    else
+        project = { "perizie": 1, "mail": 1, "username": 1, "img": 1, "color": 1, "_id" : 0 }
+    let collection = req["connessione"].db(DBNAME).collection("Users")
+    collection.find(query).project(project).toArray().then((data: any) => {
+        res.send(JSON.stringify(data));
+    }).catch((err: Error) => {
+        res.status(500);
+        res.send(err.message);
+    })
+})
+
+app.patch("/api/modificaPerizia", (req: any, res: Response, next: NextFunction) => {
+    let mail = req.body.mail;
+    let id_perizia = req.body.id_perizia;
+    let nome = req.body.nome;
+    let data = req.body.data;
+    let descrizione = req.body.descrizione;
+    let img_desc = req.body.img_desc;
+    if (!Array.isArray(img_desc))
+        img_desc = [img_desc];
+
+    let query = { $and: [{ mail: mail }, { "perizie": { $elemMatch: { "id_perizia": id_perizia } } }] };
+    let collection = req["connessione"].db(DBNAME).collection("Users")
+    collection.updateOne(query, {$set : {"perizie.$.nome": nome, "perizie.$.data": data, "perizie.$.descrizione": descrizione, "perizie.$.img_desc": img_desc}}).then((data: any) => {
+        res.send(JSON.stringify({ result: "ok" }));
+    }).catch((err: Error) => {
+        res.status(500);
+        res.send(err.message);
+    });
+
+
+})
+
+app.post("/api/getPerizia", (req: any, res: Response, next: NextFunction) => {
+    let mail = req.body.mail;
+    let id_perizia = req.body.id_perizia;
+    let query = { $and: [{ mail: mail }, { "perizie": { $elemMatch: { "id_perizia": id_perizia } } }] };
+    let collection = req["connessione"].db(DBNAME).collection("Users")
+    collection.find(query).project({"mail": 1, "username" : 1, "perizie.$" : 1, "_id" : 0 }).toArray().then((data: any) => {
+        res.send(JSON.stringify(data));
+    }).catch((err: Error) => {
+        res.status(500);
+        res.send(err.message);
+    });
+});
+
 
 
 /* ********************** (Sezione 4) DEFAULT ROUTE  ************************* */
