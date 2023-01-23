@@ -12,10 +12,10 @@ let mapID; //per la mappa
 let directionsRenderer; //per disegnare la rotta
 let _result; //per salvare la posizione della sede principale
 
+let infoWindow;
+
 //funzione che viene eseguita quando la pagina carica
 window.onload = async function () {
-
-	await caricaGoogleMaps();
 
 	//#region variabili
 	//parti del progetto
@@ -24,11 +24,22 @@ window.onload = async function () {
 	const div_filtro = $("#div_filtro");
 	const divMappa = $("#divMappa");
 	const divPerizie = $("#divPerizie");
+	_wrapper.hide();
+	let request = inviaRichiesta("POST", "/api/getUser");
+	request.fail(errore);
+	request.done(function (data) {
+		mail_current_user = data.mail;
+		_wrapper.show();
+	});
+
+	await caricaGoogleMaps();
+
 
 	//sezione utente
 	const _btnAddUser = $("#btnAddUser");
 	const _modalUser = $("#modalUser");
 	const _userDettagli = $("#userDettagli");
+	const _btnLogout = $("#btnLogout");
 
 	//input per aggiunta utenti
 	const txtEmailNew = $("#txtEmailNew");
@@ -83,6 +94,11 @@ window.onload = async function () {
 	})
 	//#endregion
 
+	_btnLogout.on("click", function () {
+		localStorage.removeItem("token")
+		window.location.href = "login.html"
+	});
+
 	//#region google maps
 
 	//mostro la mappa di Google Maps
@@ -124,10 +140,11 @@ window.onload = async function () {
 							<p class='content'>Via San Michele 68, Fossano</p>`,
 				"width": 150
 			}
-			let infoWindow = new google.maps.InfoWindow(infoWindowOption);
+			infoWindow = new google.maps.InfoWindow(infoWindowOption);
 			total_infowindows.push(infoWindow);
 			marker.addListener("click", function () {
-
+				if (infoWindow)
+					infoWindow.close();
 				infoWindow.open(mapID, marker);
 			})
 
@@ -163,7 +180,7 @@ window.onload = async function () {
 		}
 		index--;
 		$("#img").children("img").remove();
-		let img_carousel = $("<img>").attr("src", perizia.immagini[index].img_url);
+		let img_carousel = $("<img>").attr("src", perizia.immagini[index].img_url).css("width", "100%")
 		_desc_img.children("span").text(perizia.img_desc[index]);
 		img_carousel.appendTo($("#img"))
 		$("#img").children("img").css("animation", "fadeIn 1s")
@@ -179,7 +196,7 @@ window.onload = async function () {
 		}
 		index++;
 		$("#img").children("img").remove();
-		let img_carousel = $("<img>").attr("src", perizia.immagini[index].img_url);
+		let img_carousel = $("<img>").attr("src", perizia.immagini[index].img_url).css("width", "100%")
 		_desc_img.children("span").text(perizia.img_desc[index])
 		img_carousel.appendTo($("#img"))
 		$("#img").children("img").css("animation", "fadeIn 1s")
@@ -351,7 +368,8 @@ window.onload = async function () {
 	_btnCloseDirections.on("click", function () {
 		$("#panel").css("z-index", "-1");
 		$("#panel").children("div").html("");
-		directionsRenderer.setMap(null);
+		if (directionsRenderer)
+			directionsRenderer.setMap(null);
 		let bounds = new google.maps.LatLngBounds();
 		for (var i = 0; i < total_markers.length; i++) {
 			bounds.extend(total_markers[i].position);
@@ -367,12 +385,17 @@ window.onload = async function () {
 		//svuoto i campi
 		txtEmailNew.val("");
 		txtPwdNew.val("");
-		txtRuoloNew.prop("selectedIndex", 0);
+		$("#txtUsernameNew").val("");
 
 	});
 
 	btnUtenti.on("click", () => {
 		inserisciUtenti()
+	});
+
+	_listPerizie.on("change", function () {
+		eseguiFiltro();
+
 	});
 
 	txtEmailNew.on("blur", function () {
@@ -407,6 +430,12 @@ window.onload = async function () {
 			formData.append("img", $("#txtImgNew").prop("files")[0]);
 		if ($("#txtUsernameNew").val() != "")
 			formData.append("username", $("#txtUsernameNew").val());
+		if(txtPwdNew.val() == "")
+			formData.append("change", true);
+		else
+			formData.append("change", false);
+		formData.append("admin", false);
+		formData.append("color", "#FF0000");
 		let requestnewUser = inviaRichiestaMultipart("POST", "/api/newUser", formData);
 		requestnewUser.fail((jqXHR, testStatus, strError) => {
 			if (jqXHR.status == 401) //401 => utente non autorizzato
@@ -492,12 +521,30 @@ window.onload = async function () {
 				if (!user.deleted) {
 					//aggiunta icona per visualizzare i dati utente
 					btn = $("<button>").attr({ "data-bs-toggle": "modal", "data-bs-target": "#userDettagli" }).addClass("detail").appendTo(divOptions);
+					console.log(user)
+
 					$("<i>").addClass("bi bi-person-circle dettagliUser").appendTo(btn)
 					btn.on("click", visualizzaDettagli);
 				}
 			}
 		})
 	}
+
+	$("#btnRigeneraPassword").on("click", function () {
+		console.log(_txtEmailDettagli.val())
+		let request = inviaRichiesta("POST", "/api/riGeneraPassword", { "mail": _txtEmailDettagli.val() });
+		request.fail(errore);
+		request.done((data) => {
+			swal.fire({
+				title: "Password generata",
+				text: "La password è stata generata e inviata all'utente",
+				icon: "success",
+				confirmButtonText: "Ok"
+			}).then((result) => {
+				$("#btnChiudiDettagli").trigger("click");
+			})
+		})
+	})
 
 	_btnSalvaDettagli.on("click", function () {
 		let param = {};
@@ -508,6 +555,7 @@ window.onload = async function () {
 		request.done((data) => {
 			$("#btnChiudiDettagli").trigger("click");
 			inserisciUtenti();
+			eseguiFiltro();
 		})
 
 	});
@@ -555,7 +603,7 @@ window.onload = async function () {
 		if (perizia.immagini) {
 			max_length = perizia.immagini.length;
 
-			let img_carousel = $("<img>").attr("src", perizia.immagini[index].img_url);
+			let img_carousel = $("<img>").attr("src", perizia.immagini[index].img_url).css("width", "100%");
 			img_carousel.appendTo($("#img"))
 			_desc_img.children("span").text(perizia.img_desc[index])
 		}
@@ -606,6 +654,10 @@ window.onload = async function () {
 	function visualizzaDettagli() {
 
 		let utente = $(this).parent().prop("utente");
+		if (utente.admin)
+			$("#btnRigeneraPassword").hide();
+		else
+			$("#btnRigeneraPassword").show();
 		if (utente.img)
 			_imgProfilo.prop("src", utente.img);
 		else
@@ -725,6 +777,7 @@ window.onload = async function () {
 					let infoWindow = new google.maps.InfoWindow(infoWindowOption);
 					total_infowindows.push(infoWindow);
 					marker.addListener("click", function () {
+						$(".btn-close").trigger("click");
 						if (lastWindow)
 							lastWindow.close();
 						lastWindow = infoWindow;
@@ -755,6 +808,7 @@ window.onload = async function () {
 
 							let percorso = $(".percorso");
 							percorso.on("click", function () {
+								_btnCloseDirections.trigger("click");
 								$("#panel").css("z-index", "1");
 								let start = result[0].geometry.location;
 								let end = new google.maps.LatLng(perizia.coord.lat, perizia.coord.lon)
@@ -790,7 +844,8 @@ window.onload = async function () {
 										directionsRenderer.setMap(mapID) //gli passiamo la mappa
 										directionsRenderer.setRouteIndex(0) //vogliamo visualizzare la prima
 										directionsRenderer.setDirections(directionsRoutes)
-										//$("#panel").html("");
+										$("#panel").children("div").eq(0).remove();
+
 										directionsRenderer.setPanel($("#panel").get(0)) // pannello con le indicazioni stradali
 										//$("<i>").addClass("bi bi-x").insertBefore($("#panel").children("div").eq(0))
 
@@ -809,6 +864,8 @@ window.onload = async function () {
 			}
 		}
 	}
+
+
 
 
 }

@@ -6,26 +6,37 @@
 }
 
 body,
-html {
+html, #div_login {
 	height: 100%;
+	/*gradiente da blu scuro a blu*/
+	background-color: #181818;
+	background-repeat: no-repeat;
 }
 
 /*LOGIN*/
-.container:first-child {
+.container {
+	
 	width: 100%;
-	background-color: #f8f9fa;
 	display: grid;
 	place-items: center;
 	align-content: center;
+	height: 100%;
+	/*centro verticale*/
+	vertical-align: middle;
 }
 
 
 .login {
+	background-color: #333333;
 	width: 450px;
 	height: fit-content;
-	background-color: #fff;
-	border-radius: 0.25rem;
+	color: #f8f7fa;
+	border-radius: 10px;
 	padding: 10px;
+}
+
+.form-floating label{
+	color: black;
 }
 
 
@@ -55,3 +66,21 @@ html {
 	transform: translateY(-50%);
 	cursor: pointer;
 }
+
+#accessErr{
+	margin-bottom: 10px;
+}
+#btnLogin{
+	background: linear-gradient(45deg, #002863, #0161c2);
+	margin-top: 10px;
+}
+.login h1{
+	margin-left: 10px;
+}
+
+@media screen and (max-width: 768px) {
+	.login {
+		width: 100%;
+	}
+}
+
