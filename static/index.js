@@ -12,10 +12,11 @@ let mapID; //per la mappa
 let directionsRenderer; //per disegnare la rotta
 let _result; //per salvare la posizione della sede principale
 
+let MAP_KEY;
 let infoWindow;
 
 //funzione che viene eseguita quando la pagina carica
-window.onload = async function () {
+window.onload = function () {
 
 	//#region variabili
 	//parti del progetto
@@ -32,14 +33,16 @@ window.onload = async function () {
 		_wrapper.show();
 	});
 
-	await caricaGoogleMaps();
-
-
+	caricaGoogleMaps();
+}
+function documentReady() {
 	//sezione utente
 	const _btnAddUser = $("#btnAddUser");
 	const _modalUser = $("#modalUser");
 	const _userDettagli = $("#userDettagli");
 	const _btnLogout = $("#btnLogout");
+
+
 
 	//input per aggiunta utenti
 	const txtEmailNew = $("#txtEmailNew");
@@ -430,7 +433,7 @@ window.onload = async function () {
 			formData.append("img", $("#txtImgNew").prop("files")[0]);
 		if ($("#txtUsernameNew").val() != "")
 			formData.append("username", $("#txtUsernameNew").val());
-		if(txtPwdNew.val() == "")
+		if (txtPwdNew.val() == "")
 			formData.append("change", true);
 		else
 			formData.append("change", false);
@@ -710,19 +713,6 @@ window.onload = async function () {
 
 	}
 
-	function caricaGoogleMaps() {
-		const URL = "https://maps.googleapis.com/maps/api"
-		let promise = new Promise(function (resolve, reject) {
-			let script = document.createElement('script');
-			script.type = 'text/javascript';
-			script.src = URL + '/js?&key=' + MAP_KEY + '&v=3&libraries=marker';
-			document.body.appendChild(script);
-			script.onload = resolve;
-			script.onerror = reject;
-		})
-		return promise;
-	}
-
 
 
 
@@ -864,8 +854,30 @@ window.onload = async function () {
 			}
 		}
 	}
-
-
-
-
 }
+
+
+
+
+
+function caricaGoogleMaps() {
+	const URL = "https://maps.googleapis.com/maps/api"
+	let requestKey = inviaRichiesta("GET", "/api/getKey");
+	requestKey.fail(errore);
+	requestKey.done((data) => {
+		console.log(data);
+		MAP_KEY = data.key;
+		let promise = new Promise(function (resolve, reject) {
+			let script = document.createElement('script');
+			script.type = 'text/javascript';
+			script.src = URL + '/js?&key=' + MAP_KEY + '&v=3&libraries=marker&callback=documentReady';
+			document.body.appendChild(script);
+			script.onload = resolve;
+			script.onerror = reject;
+		})
+		return promise;
+	})
+}
+
+
+

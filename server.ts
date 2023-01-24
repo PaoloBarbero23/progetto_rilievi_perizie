@@ -264,6 +264,10 @@ let transporter = nodemailer.createTransport({
     "service": "gmail",
     "auth": auth
 });
+
+app.get("/api/getKey", (req: any, res: Response, next: NextFunction) => {
+    res.send(JSON.stringify({"key" : process.env.MAP_KEY}));
+})
 app.post("/api/showUtenti", (req: any, res: Response, next: NextFunction) => {
     let collection = req["connessione"].db(DBNAME).collection("Users")
     collection.find()
